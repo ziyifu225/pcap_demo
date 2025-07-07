@@ -1,0 +1,8 @@
+[package]
+name = "pcap_demo"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+pcap = { version = "2", features = ["capture-stream"] }
+libc = "0.2"
