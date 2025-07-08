@@ -4,5 +4,5 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-pcap = "1"
+pcap = { version = "2", features = ["capture-stream"] }
 libc = "0.2"
