@@ -2,11 +2,11 @@ use std::os::unix::net::UnixListener;
 use std::io::Read;
 use std::fs;
 use pcap_demo::usb_packet::UsbLikePacket;
-use bincode;
 
-use pcap::{Capture, Linktype, Packet, PacketHeader};
+use pcap::{Capture, Linktype};
 use std::time::{SystemTime, UNIX_EPOCH};
 use libc::timeval;
+use pcap_demo::handler::handle_usb_packet;
 
 fn main() {
     let socket_path = "/tmp/usb-sim.sock";
@@ -25,39 +25,13 @@ fn main() {
         match stream {
             Ok(mut stream) => {
                 let mut buf = vec![0u8; 4096];
-                loop {
+                loop{
                     match stream.read(&mut buf){
                         Ok(0) => break,
                         Ok(len) => {
-                            // time stamp
-                            let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
-                            let ts = timeval {
-                                tv_sec: now.as_secs() as i64,
-                                tv_usec: now.subsec_micros() as i64,
-                            };
-
-                            // decode the packets
                             match bincode::deserialize::<UsbLikePacket>(&buf[..len]) {
-                                Ok(packet) => {
-                                    println!("Received: {:?}", packet);
-
-                                    // write into PCAP file
-                                    let header = PacketHeader {
-                                        ts,
-                                        caplen: packet.payload.len() as u32,
-                                        len: packet.payload.len() as u32,
-                                    };
-                                    let packet = Packet {
-                                        header: &header,
-                                        data: &packet.payload,
-                                    };
-                                    savefile.write(&packet);
-                                    savefile.flush().expect("Flush failed");
-                                }
-                                Err(e) => {
-                                    eprintln!("Failed to decode packet: {}", e);
-                                    continue;
-                                }
+                                Ok(packet) => handle_usb_packet(packet, &mut savefile),
+                                Err(e) => eprintln!("Failed to decode packet: {}", e),
                             }
                         }
                         Err(e) => {
@@ -65,9 +39,9 @@ fn main() {
                             break;
                         }
                     }
-                }  
-            }
-        Err(e) => eprintln!("Error: {}", e),
+                }
+            }  
+            Err(e) => eprintln!("Error: {}", e),
         }
     }
 }
