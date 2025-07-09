@@ -1,7 +1,7 @@
 use std::os::unix::net::UnixStream;
 use std::io::Write;
 use std::fs;
-use pcap_demo::usb_packet::UsbLikePacket; 
+use pcap_demo::usb_packet::UsbControlPacket; 
 use bincode;
 use std::thread::sleep;
 use std::time::Duration;
@@ -16,23 +16,29 @@ fn main() {
     let mut stream = UnixStream::connect(socket_path).expect("Failed to connect to socket");
 
     let packets = vec![
-        UsbLikePacket {
-            endpoint: 1,
-            direction: 0,
-            payload_len: 5,
-            payload: b"hello".to_vec(),
+        UsbControlPacket {
+            request_type: 0x80, // IN, Standard, Device
+            request: 6,
+            value: 0x0100,
+            index: 0,
+            length: 18,
+            data: vec![0xE0],
         },
-        UsbLikePacket {
-            endpoint: 2,
-            direction: 1,
-            payload_len: 6,
-            payload: b"world!".to_vec(),
+        UsbControlPacket {
+            request_type: 0x00, // OUT, Standard, Device
+            request: 9, // SET_CONFIGURATION
+            value: 1,
+            index: 0,
+            length: 0,
+            data: vec![0xF0],
         },
-        UsbLikePacket {
-            endpoint: 3,
-            direction: 0,
-            payload_len: 4,
-            payload: b"data".to_vec(),
+        UsbControlPacket {
+            request_type: 0x21, // OUT, Class, Interface
+            request: 0x09, // SET_REPORT
+            value: 0x0200,
+            index: 0x01,
+            length: 2,
+            data: vec![0xAB, 0xCD],
         },
     ];
 

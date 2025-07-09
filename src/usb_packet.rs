@@ -1,9 +1,11 @@
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct UsbLikePacket {
-    pub endpoint: u8,
-    pub direction: u8,
-    pub payload_len: u16,
-    pub payload: Vec<u8>,
+pub struct UsbControlPacket {
+    pub request_type: u8,   // bmRequestType
+    pub request: u8,        // bRequest
+    pub value: u16,         // wValue
+    pub index: u16,         // wIndex
+    pub length: u16,        // wLength
+    pub data: Vec<u8>,      // payload
 }

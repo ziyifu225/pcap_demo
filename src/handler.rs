@@ -1,9 +1,9 @@
-use crate::usb_packet::UsbLikePacket;
+use crate::usb_packet::UsbControlPacket;
 use pcap::{Packet, PacketHeader, Savefile};
 use std::time::{SystemTime, UNIX_EPOCH};
 use libc::timeval;
 
-pub fn handle_usb_packet(packet: UsbLikePacket, savefile: &mut Savefile) {
+pub fn handle_usb_packet(packet: UsbControlPacket, savefile: &mut Savefile) {
     println!("Received: {:?}", packet);
 
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
@@ -14,13 +14,13 @@ pub fn handle_usb_packet(packet: UsbLikePacket, savefile: &mut Savefile) {
 
     let header = PacketHeader {
         ts,
-        caplen: packet.payload.len() as u32,
-        len: packet.payload.len() as u32,
+        caplen: packet.data.len() as u32,
+        len: packet.data.len() as u32,
     };
 
     let data_packet = Packet {
         header: &header,
-        data: &packet.payload,
+        data: &packet.data,
     };
 
     savefile.write(&data_packet);
