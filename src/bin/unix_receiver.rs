@@ -1,7 +1,7 @@
 use std::os::unix::net::UnixListener;
 use std::io::Read;
 use std::fs;
-use pcap_demo::usb_packet::UsbControlPacket;
+use pcap_demo::usb_packet::UsbPacket;
 
 use pcap::{Capture, Linktype};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -29,7 +29,7 @@ fn main() {
                     match stream.read(&mut buf){
                         Ok(0) => break,
                         Ok(len) => {
-                            match bincode::deserialize::<UsbControlPacket>(&buf[..len]) {
+                            match bincode::deserialize::<UsbPacket>(&buf[..len]) {
                                 Ok(packet) => handle_usb_packet(packet, &mut savefile),
                                 Err(e) => eprintln!("Failed to decode packet: {}", e),
                             }

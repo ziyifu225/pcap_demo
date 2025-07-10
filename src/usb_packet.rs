@@ -1,11 +1,31 @@
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
+pub enum UsbPacket {
+    Control(UsbControlPacket),
+    Bulk(UsbBulkPacket),
+    Interrupt(UsbInterruptPacket),
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct UsbControlPacket {
-    pub request_type: u8,   // bmRequestType
-    pub request: u8,        // bRequest
-    pub value: u16,         // wValue
-    pub index: u16,         // wIndex
-    pub length: u16,        // wLength
-    pub data: Vec<u8>,      // payload
+    pub request_type: u8,   
+    pub request: u8,   
+    pub value: u16,  
+    pub index: u16, 
+    pub length: u16,  
+    pub data: Vec<u8>,  
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UsbBulkPacket {
+    pub endpoint: u8,
+    pub data: Vec<u8>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UsbInterruptPacket {
+    pub endpoint: u8,
+    pub interval: u8,
+    pub data: Vec<u8>,
 }
