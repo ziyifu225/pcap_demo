@@ -1,6 +1,12 @@
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct UsbPacketEnvelope {
+    pub packet_id: u64,
+    pub payload: UsbPacket,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub enum UsbPacket {
     Control(UsbControlPacket),
     Bulk(UsbBulkPacket),

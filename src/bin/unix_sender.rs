@@ -1,7 +1,7 @@
 use std::os::unix::net::UnixStream;
 use std::io::Write;
 use std::fs;
-use pcap_demo::usb_packet::{UsbPacket, UsbControlPacket, UsbBulkPacket, UsbInterruptPacket}; 
+use pcap_demo::usb_packet::{UsbPacketEnvelope, UsbPacket, UsbControlPacket, UsbBulkPacket, UsbInterruptPacket}; 
 use bincode;
 use std::thread::sleep;
 use std::time::Duration;
@@ -35,10 +35,16 @@ fn main() {
         }),
     ];
 
-    for packet in packets {
-        let encoded = bincode::serialize(&packet).expect("Failed to serialize");
+    for (i, packet) in packets.into_iter().enumerate() {
+
+        let envelope = UsbPacketEnvelope {
+            packet_id: i as u64,
+            payload: packet,
+        };
+
+        let encoded = bincode::serialize(&envelope).expect("Failed to serialize");
         stream.write_all(&encoded).expect("Failed to send");
-        println!("✅ Sent: {:?}", packet);
+        println!("✅ Sent: packet_id={}, {:?}", i, envelope);
 
         sleep(Duration::from_millis(500));
     }
