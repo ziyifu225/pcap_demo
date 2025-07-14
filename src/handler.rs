@@ -1,4 +1,4 @@
-use crate::usb_packet::{UsbPacketEnvelope, UsbPacket};
+use crate::usb_packet::*;
 use pcap::{Packet, PacketHeader, Savefile};
 use std::time::{SystemTime, UNIX_EPOCH};
 use libc::timeval;
@@ -7,7 +7,11 @@ pub fn handle_usb_packet(envelope: UsbPacketEnvelope, savefile: &mut Savefile) {
     println!("Received packet_id {}: {:?}", envelope.packet_id, envelope.payload);
 
     let (data, length) = match &envelope.payload {
-        UsbPacket::Control(ctrl) => (&ctrl.data[..], ctrl.data.len()),
+        UsbPacket::Control(stage) => match stage {
+            ControlStage::Setup(_) => (&b"SETUP"[..], 5),
+            ControlStage::Data(data) => (&data[..], data.len()),
+            ControlStage::StatusAck => (&b"ACK"[..], 3),
+        },
         UsbPacket::Bulk(bulk) => (&bulk.data[..], bulk.data.len()),
         UsbPacket::Interrupt(interrupt) => (&interrupt.data[..], interrupt.data.len()),
     };

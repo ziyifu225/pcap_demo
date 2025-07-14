@@ -8,9 +8,16 @@ pub struct UsbPacketEnvelope {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum UsbPacket {
-    Control(UsbControlPacket),
+    Control(ControlStage),
     Bulk(UsbBulkPacket),
     Interrupt(UsbInterruptPacket),
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub enum ControlStage {
+    Setup(UsbControlPacket),
+    Data(Vec<u8>),
+    StatusAck,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
