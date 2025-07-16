@@ -19,7 +19,6 @@ fn main() {
 
     for stream in listener.incoming() {
         let mut reader = BufReader::new(stream.expect("stream error"));
-
         loop {
             match read_packet(&mut reader) {
                 Some(envelope) => handle_usb_packet(envelope, &mut savefile),

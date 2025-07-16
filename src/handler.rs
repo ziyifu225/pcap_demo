@@ -16,6 +16,7 @@ pub fn handle_usb_packet(envelope: UsbPacketEnvelope, savefile: &mut Savefile) {
         UsbPacket::Interrupt(interrupt) => (&interrupt.data[..], interrupt.data.len()),
     };
 
+    // time stamp
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
     let ts = timeval {
         tv_sec: now.as_secs() as i64,

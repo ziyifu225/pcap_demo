@@ -59,7 +59,12 @@ fn main() {
             UsbPacket::Control(stage) => match stage {
                 ControlStage::Setup(setup) => {
                     encoded.push(0x01);
-                    encoded.extend(setup.to_bytes());
+                    encoded.push(setup.request_type);
+                    encoded.push(setup.request);
+                    encoded.extend(&setup.value.to_le_bytes());
+                    encoded.extend(&setup.index.to_le_bytes());
+                    encoded.extend(&setup.length.to_le_bytes());
+                    encoded.extend(&setup.data);
                 }
                 ControlStage::Data(data) => {
                     encoded.push(0x02);
