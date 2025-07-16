@@ -42,3 +42,16 @@ pub struct UsbInterruptPacket {
     pub interval: u8,
     pub data: Vec<u8>,
 }
+
+impl UsbControlPacket {
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let mut buf = Vec::new();
+        buf.push(self.request_type);
+        buf.push(self.request);
+        buf.extend(&self.value.to_le_bytes());
+        buf.extend(&self.index.to_le_bytes());
+        buf.extend(&self.length.to_le_bytes());
+        buf.extend(&self.data);
+        buf
+    }
+}

@@ -1,7 +1,6 @@
 use std::os::unix::net::UnixStream;
 use std::io::Write;
 use pcap_demo::usb_packet::*; 
-use bincode;
 use std::thread::sleep;
 use std::time::Duration;
 
@@ -39,7 +38,7 @@ fn main() {
             packet_id: 2,
             payload: UsbPacket::Bulk(UsbBulkPacket {
                 endpoint: 2,
-                data: vec![0xDE, 0xAD, 0xBE, 0xEF],
+                data: vec![0xDE, 0xAD, 0xBE, 0xEF, 0xAB, 0xFA, 0xCD],
             }),      
         },
         UsbPacketEnvelope {
@@ -53,12 +52,39 @@ fn main() {
     ];
 
     for packet in packets {
-        let encoded = bincode::serialize(&packet).expect("Failed to serialize");
+        let mut encoded = Vec::new();
+        encoded.extend(&packet.packet_id.to_le_bytes());
 
-        let chunk_size = 8;
-        for chunk in encoded.chunks(chunk_size) {
+        match &packet.payload {
+            UsbPacket::Control(stage) => match stage {
+                ControlStage::Setup(setup) => {
+                    encoded.push(0x01);
+                    encoded.extend(setup.to_bytes());
+                }
+                ControlStage::Data(data) => {
+                    encoded.push(0x02);
+                    encoded.extend(data);
+                }
+                ControlStage::StatusAck => {
+                    encoded.push(0x03);
+                }
+            },
+            UsbPacket::Bulk(bulk) => {
+                encoded.push(0x04);
+                encoded.push(bulk.endpoint);
+                encoded.extend(&bulk.data);
+            }
+            UsbPacket::Interrupt(interrupt) => {
+                encoded.push(0x05);
+                encoded.push(interrupt.endpoint);
+                encoded.push(interrupt.interval);
+                encoded.extend(&interrupt.data);
+            }
+        }
+
+        for chunk in encoded.chunks(8) {
             stream.write_all(chunk).expect("Failed to send chunk");
-            println!("Sent chunk ({} bytes)", chunk.len());
+            println!("Sent chunk ({} bytes): {:?}", chunk.len(), chunk);
             sleep(Duration::from_millis(20));
         }
         println!("Sent full packet: {:?}", packet);
